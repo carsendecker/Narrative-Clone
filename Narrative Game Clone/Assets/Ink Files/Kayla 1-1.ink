@@ -1,9 +1,9 @@
-INCLUDE Amy 1-1
-* [(You log on and open a chat with your friend Kayla)] -> Kayla1
+
+* omg kayla are you around... i stayed home sick from school lol
+-> Kayla1.A
 
 === Kayla1 ===
 = A
-omg kayla are you around... i stayed home sick from school lol
 Kayla: are you ok ;_;? or... did you just stay up late playing video games lol
 * i stayed up all night working on my laria shrine... ^^
 -> Kayla2.A
@@ -85,6 +85,5 @@ Kayla: lol i tried to get my parents to watch a show with me once and... they ch
 === Kayla8 ===
 = A
 Kayla: yeah... i dont really have any irl family or friends who like this stuff... brb a min
-* [(As you wait for Kayla to return, you tab over to a chat with Amy)]
--> Amy_Start
+-> END
 

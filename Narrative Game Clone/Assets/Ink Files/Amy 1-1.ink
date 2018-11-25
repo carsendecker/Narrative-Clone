@@ -1,4 +1,3 @@
-=== Amy_Start ===
 Amy: hihi! im back from soccer practice!
 * ^^ how was it? hear anything else about rebecca and alex? 
 -> Amy1.A

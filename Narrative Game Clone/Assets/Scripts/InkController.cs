@@ -5,35 +5,40 @@ using Ink.Runtime;
 using TMPro;
 
 // This is a super bare bones example of how to play and display a ink story in Unity.
-public class BasicInkExample : MonoBehaviour {
-	
-	[SerializeField]
-	private TextAsset inkJSONAsset;
-	private Story story;
+public class InkController : MonoBehaviour
+{
+	public TextAsset inkJSONAsset;
+	public GameObject choicePanel;
+	public GameObject scrollView;
 
-	[SerializeField]
-	private Canvas canvas;
-	
-	[SerializeField]
-	private GameObject choicePanel;
-	
-	[SerializeField]
-	private GameObject scrollView;
-	
-	[SerializeField]
+
 	private ScrollRect scrollBar;
-
+	private Story story;
+	private ChatWindowControl chatControl;
+	private bool playerReply;
+	
 	// UI Prefabs
 	[SerializeField]
 	private TextMeshProUGUI textPrefab;
 	[SerializeField]
 	private Button buttonPrefab;
+	
 	void Awake () {
-		StartStory();
+		//StartStory();
+		chatControl = GetComponent<ChatWindowControl>();
 	}
 
 	// Creates a new Story object with the compiled story which we can then play!
 	void StartStory () {
+		story = new Story (inkJSONAsset.text);
+		RefreshView();
+	}
+
+	public void StartStory(TextAsset conversation, GameObject convoPanel)
+	{
+		inkJSONAsset = conversation;
+		scrollView = convoPanel;
+		scrollBar = scrollView.GetComponentInParent<ScrollRect>();
 		story = new Story (inkJSONAsset.text);
 		RefreshView();
 	}
@@ -51,6 +56,9 @@ public class BasicInkExample : MonoBehaviour {
 			string text = story.Continue ();
 			// This removes any white space from the text.
 			text = text.Trim();
+
+			if (playerReply) text = "Me: " + text;
+			playerReply = !playerReply;
 			// Display the text on screen!
 			CreateContentView(text);
 		}
@@ -66,12 +74,9 @@ public class BasicInkExample : MonoBehaviour {
 				});
 			}
 		}
-		// If we've read all the content and there's no choices, the story is finished!
+		// If we've read all the content and there's no choices, the story is finished! 
 		else {
-			Button choice = CreateChoiceView("End of story.\nRestart?");
-			choice.onClick.AddListener(delegate{
-				StartStory();
-			});
+			chatControl.ConversationEnded();
 		}
 	}
 
@@ -119,5 +124,6 @@ public class BasicInkExample : MonoBehaviour {
 		yield return new WaitForEndOfFrame();
 		scrollBar.verticalNormalizedPosition = 0;
 	}
+	
 
 }
