@@ -36,29 +36,11 @@ public class ChatWindowControl : MonoBehaviour
 	{
 		if (kaylaAvailable)
 		{
-			blinkTimer += Time.deltaTime;
-			if (blinkTimer >= blinkSpeed)
-			{
-				if (kaylaButton.color == blinkOff)
-				{
-					kaylaButton.color = blinkOn;
-				}
-				else kaylaButton.color = blinkOff;
-
-				blinkTimer = 0;
-			}
+			BlinkButton(kaylaButton);
 		}
 		else if (amyAvailable)
 		{
-			blinkTimer += Time.deltaTime;
-			if (blinkTimer >= blinkSpeed)
-			{
-				if (amyButton.color == blinkOff)
-				{
-					amyButton.color = blinkOn;
-				}
-				else amyButton.color = blinkOff;
-			}
+			BlinkButton(amyButton);
 		}
 		else
 		{
@@ -118,6 +100,21 @@ public class ChatWindowControl : MonoBehaviour
 				inkControl.StartStory(amy[0], chatContentAmy);
 				amyAvailable = false;
 			}
+		}
+	}
+
+	void BlinkButton(Image button)
+	{
+		blinkTimer += Time.deltaTime;
+		if (blinkTimer >= blinkSpeed)
+		{
+			if (button.color == blinkOff)
+			{
+				button.color = blinkOn;
+			}
+			else button.color = blinkOff;
+
+			blinkTimer = 0;
 		}
 	}
 }

@@ -57,8 +57,12 @@ public class InkController : MonoBehaviour
 			// This removes any white space from the text.
 			text = text.Trim();
 
-			if (playerReply) text = "Me: " + text;
-			playerReply = !playerReply;
+			if (playerReply)
+			{
+				text = "Me: " + text;
+				playerReply = false;
+			}
+		
 			// Display the text on screen!
 			CreateContentView(text);
 		}
@@ -83,6 +87,7 @@ public class InkController : MonoBehaviour
 	// When we click the choice button, tell the story to choose that choice!
 	void OnClickChoiceButton (Choice choice) {
 		story.ChooseChoiceIndex (choice.index);
+		playerReply = true;
 		RefreshView();
 	}
 
