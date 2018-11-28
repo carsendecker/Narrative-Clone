@@ -1,8 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Ink.Runtime;
 using TMPro;
+using Random = UnityEngine.Random;
 
 // This is a super bare bones example of how to play and display a ink story in Unity.
 public class InkController : MonoBehaviour
@@ -15,7 +17,7 @@ public class InkController : MonoBehaviour
 	private ScrollRect scrollBar;
 	private Story story;
 	private ChatWindowControl chatControl;
-	private bool playerReply;
+	private bool typing;
 	
 	// UI Prefabs
 	[SerializeField]
@@ -57,14 +59,34 @@ public class InkController : MonoBehaviour
 			// This removes any white space from the text.
 			text = text.Trim();
 
-			if (playerReply)
+			if (story.currentTags.Contains("me"))
 			{
-				text = "Me: " + text;
-				playerReply = false;
+				text = "<#FF452F>Me: </color>" + text;
 			}
-		
-			// Display the text on screen!
-			CreateContentView(text);
+			else if (story.currentTags.Contains("Kayla"))
+			{
+				text = "<#676DF1>Kayla: </color>" + text;
+			}
+			else if (story.currentTags.Contains("Amy"))
+			{
+				text = "<#00C0A3>Amy: </color>" + text;
+			}
+			
+			//If the text is not from the player, make them "type"
+			if (!story.currentTags.Contains("me"))
+			{
+				StartCoroutine(StartTyping(text));
+			}
+			else
+			{
+				CreateContentView(text);
+			}
+		}
+
+		while (typing)
+		{
+			//Just want it to wait to continue going? Prob a bad way to do this but oh well
+			typing = true;
 		}
 
 		// Display all the choices, if there are any!
@@ -87,7 +109,6 @@ public class InkController : MonoBehaviour
 	// When we click the choice button, tell the story to choose that choice!
 	void OnClickChoiceButton (Choice choice) {
 		story.ChooseChoiceIndex (choice.index);
-		playerReply = true;
 		RefreshView();
 	}
 
@@ -96,6 +117,7 @@ public class InkController : MonoBehaviour
 		TextMeshProUGUI storyText = Instantiate (textPrefab);
 		storyText.text = text;
 		storyText.transform.SetParent (scrollView.transform, false);
+	
 		StartCoroutine(ScrollDown());
 	}
 
@@ -128,6 +150,21 @@ public class InkController : MonoBehaviour
 	{
 		yield return new WaitForEndOfFrame();
 		scrollBar.verticalNormalizedPosition = 0;
+	}
+
+	IEnumerator StartTyping(String responseText)
+	{
+		typing = true;
+		yield return new WaitForSeconds(Random.Range(1.5f, 2.5f));
+		
+		TextMeshProUGUI typingText = Instantiate (textPrefab);
+		typingText.text = "<#7B7777><i> " + story.currentTags[0] + " is typing... </i></color>";
+		typingText.transform.SetParent (scrollView.transform, false);
+		yield return new WaitForSeconds(Random.Range(2f, 5f));
+		
+		Destroy(typingText);
+		CreateContentView(responseText);
+		typing = false;
 	}
 	
 
