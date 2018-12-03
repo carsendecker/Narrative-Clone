@@ -45,7 +45,7 @@ btw i was just looking up wing saga and jun is so cute??? the fanlisting just we
 -> Kayla5.A
 
 = B
-oh noooo someone got approved for jun last week... it actually just went up sunsetcalm.net/jun ahhh she used the new promo art, it's so pretty #Kayla
+oh noooo someone got approved for jun last week... it actually just went up at sunsetcalm.net/jun ahhh she used the new promo art, it's so pretty #Kayla
 * haha oops yeah i hadn't even checked if it was taken yet... my dad saw my jun wallpaper and made fun of me for it -_- #me
 -> Kayla5.A
 

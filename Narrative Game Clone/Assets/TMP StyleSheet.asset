@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Name: TMP StyleSheet
   m_EditorClassIdentifier: 
   m_StyleList:
-  - m_Name: ColorTest
-    m_HashCode: -1999728053
-    m_OpeningDefinition: 
-    m_ClosingDefinition: 
-    m_OpeningTagArray: 
-    m_ClosingTagArray: 
+  - m_Name: link
+    m_HashCode: 3770304
+    m_OpeningDefinition: <color="blue"><u>
+    m_ClosingDefinition: </u></color>
+    m_OpeningTagArray: 3c000000630000006f0000006c0000006f000000720000003d00000022000000620000006c0000007500000065000000220000003e0000003c000000750000003e000000
+    m_ClosingTagArray: 3c0000002f000000750000003e0000003c0000002f000000630000006f0000006c0000006f000000720000003e000000

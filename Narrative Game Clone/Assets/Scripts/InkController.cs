@@ -12,12 +12,15 @@ public class InkController : MonoBehaviour
 	public TextAsset inkJSONAsset;
 	public GameObject choicePanel;
 	public GameObject scrollView;
+	public float minTypeDelay, maxTypeDelay, minTypeTime, maxTypeTime;
+	public AudioClip typingSound, sendSound, receivedSound;
 
 
 	private ScrollRect scrollBar;
 	private Story story;
 	private ChatWindowControl chatControl;
-	private bool typing;
+	private AudioSource aso;
+	private bool typing, doneDisplayingContent;
 	
 	// UI Prefabs
 	[SerializeField]
@@ -28,6 +31,16 @@ public class InkController : MonoBehaviour
 	void Awake () {
 		//StartStory();
 		chatControl = GetComponent<ChatWindowControl>();
+		aso = GetComponent<AudioSource>();
+	}
+
+	private void Update()
+	{
+		if (doneDisplayingContent && !typing)
+		{
+			DisplayChoices();
+			doneDisplayingContent = false;
+		}
 	}
 
 	// Creates a new Story object with the compiled story which we can then play!
@@ -73,7 +86,9 @@ public class InkController : MonoBehaviour
 			}
 			
 			//If the text is not from the player, make them "type"
-			if (!story.currentTags.Contains("me"))
+			if (!story.currentTags.Contains("me") 
+			    && !story.currentTags.Contains("dont_type") 
+			    && story.currentTags.Count != 0)
 			{
 				StartCoroutine(StartTyping(text));
 			}
@@ -83,12 +98,11 @@ public class InkController : MonoBehaviour
 			}
 		}
 
-		while (typing)
-		{
-			//Just want it to wait to continue going? Prob a bad way to do this but oh well
-			typing = true;
-		}
+		doneDisplayingContent = true;
+	}
 
+	void DisplayChoices()
+	{
 		// Display all the choices, if there are any!
 		if(story.currentChoices.Count > 0) {
 			for (int i = 0; i < story.currentChoices.Count; i++) {
@@ -108,6 +122,7 @@ public class InkController : MonoBehaviour
 
 	// When we click the choice button, tell the story to choose that choice!
 	void OnClickChoiceButton (Choice choice) {
+		aso.PlayOneShot(sendSound);
 		story.ChooseChoiceIndex (choice.index);
 		RefreshView();
 	}
@@ -117,7 +132,6 @@ public class InkController : MonoBehaviour
 		TextMeshProUGUI storyText = Instantiate (textPrefab);
 		storyText.text = text;
 		storyText.transform.SetParent (scrollView.transform, false);
-	
 		StartCoroutine(ScrollDown());
 	}
 
@@ -155,17 +169,18 @@ public class InkController : MonoBehaviour
 	IEnumerator StartTyping(String responseText)
 	{
 		typing = true;
-		yield return new WaitForSeconds(Random.Range(1.5f, 2.5f));
+		yield return new WaitForSeconds(Random.Range(minTypeDelay, maxTypeDelay));
 		
+		aso.PlayOneShot(typingSound);
 		TextMeshProUGUI typingText = Instantiate (textPrefab);
 		typingText.text = "<#7B7777><i> " + story.currentTags[0] + " is typing... </i></color>";
 		typingText.transform.SetParent (scrollView.transform, false);
-		yield return new WaitForSeconds(Random.Range(2f, 5f));
+		StartCoroutine(ScrollDown());
+		yield return new WaitForSeconds(Random.Range(minTypeTime, maxTypeTime));
 		
-		Destroy(typingText);
+		Destroy(typingText.gameObject);
 		CreateContentView(responseText);
+		aso.PlayOneShot(receivedSound);
 		typing = false;
 	}
-	
-
 }
