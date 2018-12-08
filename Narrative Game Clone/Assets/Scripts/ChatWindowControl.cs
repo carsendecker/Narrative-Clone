@@ -18,6 +18,7 @@ public class ChatWindowControl : MonoBehaviour
 	public Image kaylaButton, amyButton;
 	public GameObject confetti;
 	public AudioClip cheerSound, notifySound, openSound;
+	public Flash cursorScript;
 	
 	private InkController inkControl;
 	private int timesChattedKayla, timesChattedAmy;
@@ -90,10 +91,14 @@ public class ChatWindowControl : MonoBehaviour
 		if (amyChatting)
 		{
 			choicePanel.SetActive(false);
+			cursorScript.FlashObject(false);
+			cursorScript.gameObject.SetActive(false);
 		}
 		else if (kaylaChatting)
 		{
 			choicePanel.SetActive(true);
+			cursorScript.gameObject.SetActive(true);
+			cursorScript.FlashObject(true);
 		}
 
 		if (kaylaAvailable)
@@ -101,6 +106,8 @@ public class ChatWindowControl : MonoBehaviour
 			if (timesChattedKayla == 0)
 			{
 				inkControl.StartStory(kayla[0], chatContentKayla);
+				choicePanel.SetActive(true);
+				cursorScript.gameObject.SetActive(true);
 				kaylaAvailable = false;
 				kaylaChatting = true;
 			}
@@ -119,10 +126,14 @@ public class ChatWindowControl : MonoBehaviour
 		if (kaylaChatting)
 		{
 			choicePanel.SetActive(false);
+			cursorScript.FlashObject(false);
+			cursorScript.gameObject.SetActive(false);
 		}
 		else if (amyChatting)
 		{
 			choicePanel.SetActive(true);
+			cursorScript.gameObject.SetActive(true);
+			cursorScript.FlashObject(true);
 		}
 		
 		if (amyAvailable)

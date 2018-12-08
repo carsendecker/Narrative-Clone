@@ -74,15 +74,15 @@ public class InkController : MonoBehaviour
 
 			if (story.currentTags.Contains("me"))
 			{
-				text = "<#FF452F>Me: </color>" + text;
+				text = "<#FF452F><b>Me: </b></color>" + text;
 			}
 			else if (story.currentTags.Contains("Kayla"))
 			{
-				text = "<#676DF1>Kayla: </color>" + text;
+				text = "<#676DF1><b>Kayla: </b></color>" + text;
 			}
 			else if (story.currentTags.Contains("Amy"))
 			{
-				text = "<#00C0A3>Amy: </color>" + text;
+				text = "<#00C0A3><b>Amy: </b></color>" + text;
 			}
 			
 			//If the text is not from the player, make them "type"
@@ -140,6 +140,7 @@ public class InkController : MonoBehaviour
 		// Creates the button from a prefab
 		Button choice = Instantiate (buttonPrefab) as Button;
 		choice.transform.SetParent (choicePanel.transform, false);
+		choice.transform.SetSiblingIndex(choice.transform.GetSiblingIndex() - 1);
 		
 		// Gets the text from the button prefab
 		Text choiceText = choice.GetComponentInChildren<Text> ();
@@ -155,7 +156,7 @@ public class InkController : MonoBehaviour
 	// Destroys all the children of this gameobject (all the UI)
 	void RemoveChildren () {
 		int childCount = choicePanel.transform.childCount;
-		for (int i = childCount - 1; i >= 0; --i) {
+		for (int i = 0; i < childCount - 1; ++i) {
 			GameObject.Destroy(choicePanel.transform.GetChild(i).gameObject);
 		}
 	}
