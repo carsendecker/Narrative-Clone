@@ -28,6 +28,8 @@ public class ChatWindowControl : MonoBehaviour
 	private bool soundPlayed;
 	private float blinkTimer;
 	private AudioSource aso;
+	private float confettiSpamTimer, confettiCount;
+	private CameraShake camShake;
 	
 	
 	// Use this for initialization
@@ -39,6 +41,7 @@ public class ChatWindowControl : MonoBehaviour
 		kaylaButton.color = blinkOff;
 		amyButton.color = blinkOff;
 		aso = GetComponent<AudioSource>();
+		camShake = GameObject.FindWithTag("MainCamera").GetComponent<CameraShake>();
 	}
 
 	private void Update()
@@ -57,6 +60,16 @@ public class ChatWindowControl : MonoBehaviour
 			kaylaButton.color = blinkOff;
 			amyButton.color = blinkOff;
 			soundPlayed = false;
+		}
+
+		if (confettiSpamTimer > 0)
+		{
+			confettiSpamTimer -= Time.deltaTime;
+		}
+		else
+		{
+			confettiCount = 0;
+			camShake.shakeMagnitude = 0.03f;
 		}
 	}
 
@@ -176,12 +189,22 @@ public class ChatWindowControl : MonoBehaviour
 	
 	public void DropConfetti()
 	{
+		confettiSpamTimer = 2.5f;
+		confettiCount++;
 		ParticleSystem[] ps = confetti.GetComponentsInChildren<ParticleSystem>();
 		foreach (var color in ps)
 		{
 			color.Play();
 		}
 		aso.PlayOneShot(cheerSound);
+		if (confettiCount > 2)
+		{
+			camShake.ShakeCamera(confettiSpamTimer);
+		}
+		if (confettiCount > 3 && confettiCount < 7)
+		{
+			camShake.shakeMagnitude += 0.02f * confettiCount;
+		}
 	}
 	
 }

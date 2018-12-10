@@ -54,7 +54,7 @@ public class InkController : MonoBehaviour
 			doneDisplayingContent = false;
 		}
 
-		if (playerTyping)
+		if (playerTyping && choicePanel.activeInHierarchy)
 		{
 			TypeAnswer();
 		}
@@ -62,6 +62,11 @@ public class InkController : MonoBehaviour
 		if (firstButton != null && EventSystem.current.currentSelectedGameObject == null)
 		{
 			if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+			{
+				EventSystem.current.SetSelectedGameObject(firstButton);
+			}
+
+			if (story.currentChoices.Count == 1 && Input.GetKeyDown(KeyCode.Return))
 			{
 				EventSystem.current.SetSelectedGameObject(firstButton);
 			}
