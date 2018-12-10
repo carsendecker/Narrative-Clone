@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Collections;
 using Ink.Runtime;
 using TMPro;
+using UnityEngine.EventSystems;
 using Random = UnityEngine.Random;
 
 // This is a super bare bones example of how to play and display a ink story in Unity.
@@ -12,15 +13,22 @@ public class InkController : MonoBehaviour
 	public TextAsset inkJSONAsset;
 	public GameObject choicePanel;
 	public GameObject scrollView;
+	public GameObject cursor;
+	public TextMeshProUGUI typingText, typePromptText;
 	public float minTypeDelay, maxTypeDelay, minTypeTime, maxTypeTime;
-	public AudioClip typingSound, sendSound, receivedSound;
+	public AudioClip typingSound, sendSound, receivedSound, selectSound;
+	public AudioClip[] playerTypingSounds;
 
 
 	private ScrollRect scrollBar;
 	private Story story;
 	private ChatWindowControl chatControl;
 	private AudioSource aso;
-	private bool typing, doneDisplayingContent;
+	private bool typing, doneDisplayingContent, playerTyping;
+	private RectTransform cursorTransform;
+	private Vector3 cursorStartPos;
+	private bool soundWaiting;
+	private GameObject firstButton;
 	
 	// UI Prefabs
 	[SerializeField]
@@ -32,6 +40,10 @@ public class InkController : MonoBehaviour
 		//StartStory();
 		chatControl = GetComponent<ChatWindowControl>();
 		aso = GetComponent<AudioSource>();
+		cursorTransform = cursor.GetComponent<RectTransform>();
+		cursorStartPos = cursorTransform.localPosition;
+		typingText.enabled = false;
+		typePromptText.enabled = false;
 	}
 
 	private void Update()
@@ -40,6 +52,19 @@ public class InkController : MonoBehaviour
 		{
 			DisplayChoices();
 			doneDisplayingContent = false;
+		}
+
+		if (playerTyping)
+		{
+			TypeAnswer();
+		}
+
+		if (firstButton != null && EventSystem.current.currentSelectedGameObject == null)
+		{
+			if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+			{
+				EventSystem.current.SetSelectedGameObject(firstButton);
+			}
 		}
 	}
 
@@ -108,6 +133,8 @@ public class InkController : MonoBehaviour
 			for (int i = 0; i < story.currentChoices.Count; i++) {
 				Choice choice = story.currentChoices [i];
 				Button button = CreateChoiceView (choice.text.Trim ());
+				if (i == 0) firstButton = button.gameObject;
+
 				// Tell the button what to do when we press it
 				button.onClick.AddListener (delegate {
 					OnClickChoiceButton (choice);
@@ -120,11 +147,63 @@ public class InkController : MonoBehaviour
 		}
 	}
 
-	// When we click the choice button, tell the story to choose that choice!
-	void OnClickChoiceButton (Choice choice) {
-		aso.PlayOneShot(sendSound);
-		story.ChooseChoiceIndex (choice.index);
-		RefreshView();
+	// When we click the choice button, tell the story to choose that choice! The player then "types" it out
+	void OnClickChoiceButton (Choice choice)
+	{
+		typingText.text = choice.text;
+		typingText.maxVisibleCharacters = 0;
+		typingText.enabled = true;
+		RemoveChildren();
+		playerTyping = true;
+		aso.PlayOneShot(selectSound);
+		story.ChooseChoiceIndex(choice.index);
+	}
+
+	void TypeAnswer()
+	{
+		int index = typingText.maxVisibleCharacters;
+		if (index == 0)
+			typePromptText.enabled = true;
+		else 
+			typePromptText.enabled = false;
+		
+		if (index < typingText.text.Length)
+		{
+			if (Input.anyKeyDown && !Input.GetKeyDown(KeyCode.Return) && !Input.GetMouseButtonDown(0))
+			{
+				typingText.maxVisibleCharacters += 2;
+				
+				//This position code was actually hell on earth
+				Vector3 charPos = typingText.transform.TransformPoint(typingText.textInfo.characterInfo[index + 1].topRight);
+				Vector3 cursorPos = cursor.transform.parent.InverseTransformPoint(charPos);
+				Vector3 newCursorPos = new Vector3(cursorPos.x, cursorStartPos.y, cursorStartPos.z);
+				cursorTransform.localPosition = newCursorPos;
+
+				if (!soundWaiting)
+				{
+					StartCoroutine(PreventSoundSpam());
+				}
+				
+//				if (typingText.text.Substring(index, 1).Equals(" "))
+//				{
+//					typingText.maxVisibleCharacters++;
+//					
+//					charPos = typingText.transform.TransformPoint(typingText.textInfo.characterInfo[index + 1].topRight);
+//					cursorPos = cursor.transform.parent.InverseTransformPoint(charPos);
+//					newCursorPos = new Vector3(cursorPos.x, cursorStartPos.y, cursorStartPos.z);
+//					cursorTransform.localPosition = newCursorPos;
+//				}
+			}
+		}
+		else
+		{
+			cursorTransform.localPosition = cursorStartPos;
+			playerTyping = false;
+			typingText.enabled = false;
+
+			aso.PlayOneShot(sendSound);
+			RefreshView();
+		}
 	}
 
 	// Creates a button showing the choice text
@@ -140,7 +219,7 @@ public class InkController : MonoBehaviour
 		// Creates the button from a prefab
 		Button choice = Instantiate (buttonPrefab) as Button;
 		choice.transform.SetParent (choicePanel.transform, false);
-		choice.transform.SetSiblingIndex(choice.transform.GetSiblingIndex() - 1);
+		choice.transform.SetSiblingIndex(choice.transform.GetSiblingIndex() - 3);
 		
 		// Gets the text from the button prefab
 		Text choiceText = choice.GetComponentInChildren<Text> ();
@@ -156,7 +235,7 @@ public class InkController : MonoBehaviour
 	// Destroys all the children of this gameobject (all the UI)
 	void RemoveChildren () {
 		int childCount = choicePanel.transform.childCount;
-		for (int i = 0; i < childCount - 1; ++i) {
+		for (int i = 0; i < childCount - 3; ++i) {
 			GameObject.Destroy(choicePanel.transform.GetChild(i).gameObject);
 		}
 	}
@@ -173,15 +252,25 @@ public class InkController : MonoBehaviour
 		yield return new WaitForSeconds(Random.Range(minTypeDelay, maxTypeDelay));
 		
 		aso.PlayOneShot(typingSound);
-		TextMeshProUGUI typingText = Instantiate (textPrefab);
-		typingText.text = "<#7B7777><i> " + story.currentTags[0] + " is typing... </i></color>";
-		typingText.transform.SetParent (scrollView.transform, false);
+		TextMeshProUGUI isTypingText = Instantiate (textPrefab);
+		isTypingText.text = "<#7B7777><i> " + story.currentTags[0] + " is typing... </i></color>";
+		isTypingText.transform.SetParent (scrollView.transform, false);
 		StartCoroutine(ScrollDown());
 		yield return new WaitForSeconds(Random.Range(minTypeTime, maxTypeTime));
 		
-		Destroy(typingText.gameObject);
+		Destroy(isTypingText.gameObject);
 		CreateContentView(responseText);
 		aso.PlayOneShot(receivedSound);
 		typing = false;
+	}
+
+	IEnumerator PreventSoundSpam()
+	{
+		soundWaiting = true;
+		aso.pitch = Random.Range(0.9f, 1.1f);
+		aso.PlayOneShot(playerTypingSounds[Random.Range(0, playerTypingSounds.Length)]);
+		yield return new WaitForSeconds(0.05f);
+		aso.pitch = 1;
+		soundWaiting = false;
 	}
 }
